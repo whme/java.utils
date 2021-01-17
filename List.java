@@ -120,6 +120,24 @@ public class List<T> implements Iterable<T>, Cloneable {
     }
 
     /**
+     * Return the first element of the list for which
+     * the given {@code compareFunction} evaluates to
+     * {@code true}.
+     * @param compareFunction Compare function to be used.
+     * @return The element from the list.
+     */
+    public T get(Function<T, Boolean> compareFunction) {
+        ListElement<T> currentElement = this.firstElement;
+        while(currentElement != null) {
+            if (compareFunction.apply(currentElement.element)) {
+                return currentElement.element;
+            }
+            currentElement = currentElement.nextElement;
+        }
+        return null;
+    }
+
+    /**
      * Insert element at given index.
      * @param element Element to be inserted.
      * @param index Index at which to insert.
@@ -132,6 +150,7 @@ public class List<T> implements Iterable<T>, Cloneable {
         newElement.nextElement = previousElement.nextElement;
         newElement.previousElement = previousElement;
         previousElement.nextElement = newElement;
+        this.length += 1;
     }
 
     /**
@@ -141,25 +160,45 @@ public class List<T> implements Iterable<T>, Cloneable {
      * is out of bounds.
      */
     public void remove(int index) {
-        this._remove(index);
-        this.length--;
+        this._remove(this._get(index));
     }
 
-    private void _remove(int index) {
-        ListElement<T> ListElement = this._get(index);
-        if (ListElement == this.firstElement) {
+    public void remove(T element) {
+        ListElement<T> currentElement = this.firstElement;
+        while(currentElement != null) {
+            if (currentElement.element.equals(element)) {
+                this._remove(currentElement);
+                return;
+            }
+            currentElement = currentElement.nextElement;
+        }
+    }
+
+    public void remove(Function<T, Boolean> compareFunction) {
+        ListElement<T> currentElement = this.firstElement;
+        while(currentElement != null) {
+            if (compareFunction.apply(currentElement.element)) {
+                this._remove(currentElement);
+                return;
+            }
+            currentElement = currentElement.nextElement;
+        }
+    }
+
+    private void _remove(ListElement<T> ListElement) {
+        this.length--;
+        if (ListElement.equals(this.firstElement)) {
             this.firstElement = this.firstElement.nextElement;
             this.firstElement.previousElement = null;
             return;
         }
-        if (ListElement == this.lastElement) {
+        if (ListElement.equals(this.lastElement)) {
             this.lastElement = this.lastElement.previousElement;
             this.lastElement.nextElement = null;
             return;
         }
         ListElement.previousElement.nextElement = ListElement.nextElement;
         ListElement.nextElement.previousElement = ListElement.previousElement;
-
     }
 
     /**
@@ -170,7 +209,7 @@ public class List<T> implements Iterable<T>, Cloneable {
     public boolean contains(T element) {
         ListElement<T> currentElement = this.firstElement;
         while(currentElement != null) {
-            if (currentElement.element == element) {
+            if (currentElement.element.equals(element)) {
                 return true;
             }
             currentElement = currentElement.nextElement;
@@ -180,12 +219,11 @@ public class List<T> implements Iterable<T>, Cloneable {
 
     /**
      * Check if an element is contained within the list
-     * and specify a compare function to be used.
-     * @param element Element to be looked for.
+     * by specifying the compare function on the element to be used.
      * @param compareFunction Compare function to be used.
      * @return Whether the element is present within the list or not.
      */
-    public boolean contains(T element, Function<T, Boolean> compareFunction) {
+    public boolean contains(Function<T, Boolean> compareFunction) {
         ListElement<T> currentElement = this.firstElement;
         while(currentElement != null) {
             if (compareFunction.apply(currentElement.element)) {
@@ -194,6 +232,12 @@ public class List<T> implements Iterable<T>, Cloneable {
             currentElement = currentElement.nextElement;
         }
         return false;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<T> clone() throws CloneNotSupportedException {
+        return (List<T>) super.clone();
     }
 
     @Override
