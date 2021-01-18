@@ -331,6 +331,10 @@ public class List<T> implements Iterable<T>, Cloneable {
         return newList;
     }
 
+    /**
+     * Initialize for loop iteration.
+     * @return The first element of the list.
+     */
     public T initForLoop() {
         if (this.isInLoop) {
             throw new AlreadyInLoopException("Loop has already been initialized.");
@@ -340,6 +344,11 @@ public class List<T> implements Iterable<T>, Cloneable {
         return this.currentElement.element;
     }
 
+    /**
+     * Whether there is a next element in the list
+     * based on the current loop iteration.
+     * @return boolean
+     */
     public boolean hasNext() {
         if (!this.isInLoop) {
             throw new NotInLoopException("List has not been initialized for loop");
@@ -358,6 +367,11 @@ public class List<T> implements Iterable<T>, Cloneable {
         return hasNext;
     }
 
+    /**
+     * Return the next element of the list
+     * based on the current loop iteration.
+     * @return Next element.
+     */
     public T next() {
         if (!this.isInLoop) {
             throw new NotInLoopException("List has not been initialized for loop");
