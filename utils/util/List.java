@@ -1,3 +1,8 @@
+package utils.util;
+
+import utils.exceptions.NotInLoopException;
+import utils.exceptions.AlreadyInLoopException;
+
 /**
  * INFO: In order to comply with policies restricting
  * the use of certain java libraries, such as java.util,
@@ -36,18 +41,32 @@ public class List<T> implements Iterable<T>, Cloneable {
     private ListElement<T> firstElement;
     private ListElement<T> lastElement;
 
+    private ListElement<T> currentElement;
+
     private int length;
+
+    private boolean isInLoop;
+    private boolean isLastLoopIteration;
 
     public List() {
         this.firstElement = null;
         this.lastElement = null;
         this.length = 0;
+        this.isInLoop = false;
+        this.isLastLoopIteration = false;
     }
 
     @SuppressWarnings("unchecked")
     public List(T... elements) {
         this();
         for (T element : elements) {
+            this.add(element);
+        }
+    }
+
+    public List(List<T> list) {
+        this();
+        for (T element: list) {
             this.add(element);
         }
     }
@@ -77,9 +96,16 @@ public class List<T> implements Iterable<T>, Cloneable {
         this.length += 1;
     }
 
+    @SuppressWarnings("unchecked")
+    public void add(T... elements) {
+        for (T element: elements) {
+            this.add(element);
+        }
+    }
+
     /**
      * Return the element at {@code index} from the list.
-     * @param index Index of the to be returned element
+     * @param index Index of the to be returned element.
      * @return Element at the given index.
      * @throws IndexOutOfBoundsException if the index
      * is out of bounds.
@@ -88,24 +114,54 @@ public class List<T> implements Iterable<T>, Cloneable {
         return this._get(index).element;
     }
 
+    /**
+     * Helper function to get an element by index.
+     * @param index Index of the element.
+     * @return Element of list at the given index.
+     */
     private ListElement<T> _get(int index) {
+        if (index == 0) {
+            return this.firstElement;
+        }
+        if (index == this.length || index == -1) {
+            return this.lastElement;
+        }
+        boolean findFromBack;
+        if (index < 0) {
+            // A negative index was provided; we make it positive
+            // and remove the offset of one. As -1 points to index 0.
+            index = (-1 * index) - 1;
+
+            // We only trigger the search from the back
+            // if the index is between
+            // -this.length/2 < index < 0
+            // In other words if the now positive value of index points
+            // to an element in the back half of the list.
+            findFromBack = index < this.length - index;
+        } else {
+            // If a positive index was provided we trigger the search
+            // from the front, unless the index points to
+            // an element in the back half of the list.
+            findFromBack = index > this.length - index;
+        }
+        if (findFromBack) {
+            if (index > (this.length - index)) {
+                    index = this.length - index - 1;
+            }
+            return this.findFromBack(index);
+        }
+        return this.findFromFront(index);
+    }
+
+    /**
+     * Find element by index starting from the first element.
+     * @param index Index of the element.
+     * @return Element of list at the given index.
+     */
+    private ListElement<T> findFromFront(int index) {
         int steps = 0;
         ListElement<T> result;
-        if (index < 0) {
-            index = (-1 * index) - 1;
-            result = this.lastElement;
-            while (steps < index) {
-                try {
-                    result = result.previousElement;
-                } catch (NullPointerException ignore) {
-                    throw new IndexOutOfBoundsException();
-                }
-                steps++;
-            }
-            return result;
-        }
-        if (index > 0) {
-            result = this.firstElement;
+        result = this.firstElement;
             while (steps < index) {
                 try {
                     result = result.nextElement;
@@ -115,8 +171,26 @@ public class List<T> implements Iterable<T>, Cloneable {
                 steps++;
             }
             return result;
+    }
+
+    /**
+     * Find element by index starting from the last element.
+     * @param index Index of the element.
+     * @return Element of list at the given index.
+     */
+    private ListElement<T> findFromBack(int index) {
+        int steps = 0;
+        ListElement<T> result;
+        result = this.lastElement;
+        while (steps < index) {
+            try {
+                result = result.previousElement;
+            } catch (NullPointerException ignore) {
+                throw new IndexOutOfBoundsException();
+            }
+            steps++;
         }
-        return this.firstElement;
+        return result;
     }
 
     /**
@@ -163,6 +237,11 @@ public class List<T> implements Iterable<T>, Cloneable {
         this._remove(this._get(index));
     }
 
+    /**
+     * Remove the first occurence of the given Element
+     * from the list.
+     * @param element Element to remove.
+     */
     public void remove(T element) {
         ListElement<T> currentElement = this.firstElement;
         while(currentElement != null) {
@@ -174,6 +253,12 @@ public class List<T> implements Iterable<T>, Cloneable {
         }
     }
 
+    /**
+     * Remove the first element of the list for which
+     * the given {@code compareFunction} evaluates to
+     * {@code true}.
+     * @param compareFunction Compare function to use.
+     */
     public void remove(Function<T, Boolean> compareFunction) {
         ListElement<T> currentElement = this.firstElement;
         while(currentElement != null) {
@@ -236,8 +321,58 @@ public class List<T> implements Iterable<T>, Cloneable {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<T> clone() throws CloneNotSupportedException {
-        return (List<T>) super.clone();
+    public List<T> clone() {
+        List<T> newList = null;
+        try {
+            newList = (List<T>) super.clone();
+        } catch (CloneNotSupportedException ignore) {
+            newList = new List<>(this);
+        }
+        return newList;
+    }
+
+    public T initForLoop() {
+        if (this.isInLoop) {
+            throw new AlreadyInLoopException("Loop has already been initialized.");
+        }
+        this.isInLoop = true;
+        this.currentElement = this.firstElement;
+        return this.currentElement.element;
+    }
+
+    public boolean hasNext() {
+        if (!this.isInLoop) {
+            throw new NotInLoopException("List has not been initialized for loop");
+        }
+        boolean hasNext;
+        try {
+            hasNext = this.currentElement.hasNext();
+        } catch (NullPointerException ignore) {
+            this.isInLoop = false;
+            this.isLastLoopIteration = false;
+            return false;
+        }
+        if (this.isLastLoopIteration) {
+            return true;
+        }
+        return hasNext;
+    }
+
+    public T next() {
+        if (!this.isInLoop) {
+            throw new NotInLoopException("List has not been initialized for loop");
+        }
+        this.currentElement = this.currentElement.nextElement;
+        T result;
+        try {
+            result = this.currentElement.element;
+        } catch (NullPointerException ignore) {
+            return null;
+        }
+        if (!this.currentElement.hasNext()) {
+            this.isLastLoopIteration = true;
+        }
+        return result;
     }
 
     @Override
@@ -255,17 +390,6 @@ public class List<T> implements Iterable<T>, Cloneable {
         return result;
     }
 
-    /**
-     * INFO: If, in order to comply with policies restricting
-     * the use of certain java libraries, such as java.util,
-     * the import statements in thif file have been removed or
-     * commented, this is also to be done for the following code.
-     * As mentioned above, this will only prevent this class
-     * to work with the enhanced {@code for} statement
-     * (sometimes called the "for-each loop" statement).
-     * All other functionalities will still be available.
-     */
-
     @SuppressWarnings("hiding")
     private class ListElement<T> {
 
@@ -277,6 +401,10 @@ public class List<T> implements Iterable<T>, Cloneable {
             this.previousElement = null;
             this.element = element;
             this.nextElement = null;
+        }
+
+        public boolean hasNext() {
+            return this.nextElement != null;
         }
     
         @Override
@@ -296,6 +424,17 @@ public class List<T> implements Iterable<T>, Cloneable {
             return String.format("%s <-- %s --> %s", previousElement, this.element, nextElement);
         }
     }
+
+    /**
+     * INFO: If, in order to comply with policies restricting
+     * the use of certain java libraries, such as java.util,
+     * the import statements in thif file have been removed or
+     * commented, this is also to be done for the following code.
+     * As mentioned above, this will only prevent this class
+     * to work with the enhanced {@code for} statement
+     * (sometimes called the "for-each loop" statement).
+     * All other functionalities will still be available.
+     */
 
     @Override
     public Iterator<T> iterator() {

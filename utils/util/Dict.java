@@ -1,3 +1,7 @@
+package utils.util;
+
+import utils.exceptions.KeyError;
+
 import java.util.function.Function;
 
 public class Dict<K, V> {
@@ -19,6 +23,17 @@ public class Dict<K, V> {
         for (int i=0; i<keys.length;i++) {
             this.items.add(new DictItem<K, V>(keys[i], values[i]));
         }
+    }
+
+    public Dict(List<DictItem<K, V>> dictItems) {
+        this();
+        for (DictItem<K, V> item: dictItems) {
+            this.items.add(new DictItem<K, V>(item.key, item.value));
+        }
+    }
+
+    public Dict(Dict<K, V> dict) {
+        this(dict.dictItems());
     }
 
     public boolean hasKey(K key) {
@@ -49,7 +64,11 @@ public class Dict<K, V> {
         this.items.remove(this.getKeyCompareFunction(key));
     }
 
-    public List<DictItem<K, V>> dictItems() throws CloneNotSupportedException {
+    /**
+     * Get a {@code List} of {@code DictItem}s with Key, Value pairs.
+     * @return  {@code List} of {@code DictItem}s with Key, Value pairs
+     */
+    public List<DictItem<K, V>> dictItems() {
         return this.items.clone();
     }
 
@@ -86,21 +105,5 @@ public class Dict<K, V> {
             result.add(String.format("\"%s\": \"%s\"", dictItem.key, dictItem.value));
         }
         return "{" + String.join(", ", result) + "}";
-    }
-
-    @SuppressWarnings("hiding")
-    public class DictItem<K, V> {
-
-        public K key;
-        public V value;
-
-        public DictItem(K key, V value){
-            this.key = key;
-            this.value = value;
-        }
-
-        public boolean hasKey(K key) {
-            return this.key.equals(key);
-        }
     }
 }

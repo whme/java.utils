@@ -1,3 +1,5 @@
+package utils.exceptions;
+
 @SuppressWarnings("serial")
 public class KeyError extends RuntimeException {
 
