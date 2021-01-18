@@ -8,9 +8,6 @@ public class Main {
         List<Integer> second = first.clone();
         System.out.println(first);
         System.out.println(second);
-        for (Integer element: first) {
-            element *= 10;
-        }
         System.out.println(first);
         System.out.println(second);
 
@@ -34,9 +31,6 @@ public class Main {
         testDict.remove("Test");
         System.out.println(testDict);
         System.out.println(testDict.values());
-        for (DictItem<String, Integer> item : testDict.dictItems()) {
-            item.value *= 10;
-        }
         System.out.println(testDict);
 
     }
@@ -52,11 +46,7 @@ public class Main {
         System.out.println(testList.toString());
         System.out.println(testList.getLength());
         System.out.println(new List<Integer>(1, 2, 3, 4, 5));
-        for (TestClass element : testList) {
-            System.out.println(element);
-        }
         TestClass testClass = new TestClass("Test-1");
         System.out.println(testList.contains(testClass));
-        System.out.println(testList.contains(testClass::haveSameString));
     }
 }

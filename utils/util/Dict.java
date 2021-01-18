@@ -2,8 +2,6 @@ package utils.util;
 
 import utils.exceptions.KeyError;
 
-import java.util.function.Function;
-
 public class Dict<K, V> {
 
     private List<DictItem<K, V>> items;
@@ -27,8 +25,8 @@ public class Dict<K, V> {
 
     public Dict(List<DictItem<K, V>> dictItems) {
         this();
-        for (DictItem<K, V> item: dictItems) {
-            this.items.add(new DictItem<K, V>(item.key, item.value));
+        for (DictItem<K, V> dictItem = dictItems.initForLoop(); dictItems.hasNext(); dictItem=dictItems.next()) {
+            this.items.add(new DictItem<K, V>(dictItem.key, dictItem.value));
         }
     }
 
@@ -48,7 +46,12 @@ public class Dict<K, V> {
 
 
     private DictItem<K, V> _get(K key) {
-        return this.items.get(this.getKeyCompareFunction(key));
+        for (DictItem<K, V> dictItem = this.items.initForLoop(); this.items.hasNext(); dictItem=this.items.next()) {
+            if (dictItem.hasKey(key)) {
+                return dictItem;
+            }
+        }
+        return null;
     }
 
     public void set(K key, V value) {
@@ -61,7 +64,12 @@ public class Dict<K, V> {
     }
 
     public void remove(K key) {
-        this.items.remove(this.getKeyCompareFunction(key));
+        for (DictItem<K, V> dictItem = this.items.initForLoop(); this.items.hasNext(); dictItem=this.items.next()) {
+            if (dictItem.key.equals(key)) {
+                this.items.remove(dictItem);
+            }
+        }
+        throw new IllegalArgumentException("Key not found");
     }
 
     /**
@@ -74,7 +82,7 @@ public class Dict<K, V> {
 
     public List<K> keys() {
         List<K> result = new List<>();
-        for (DictItem<K, V> dictItem : this.items) {
+        for (DictItem<K, V> dictItem = this.items.initForLoop(); this.items.hasNext(); dictItem=this.items.next()) {
             result.add(dictItem.key);
         }
         return result;
@@ -82,28 +90,25 @@ public class Dict<K, V> {
 
     public List<V> values() {
         List<V> result = new List<>();
-        for (DictItem<K, V> dictItem : this.items) {
+        for (DictItem<K, V> dictItem = this.items.initForLoop(); this.items.hasNext(); dictItem=this.items.next()) {
             result.add(dictItem.value);
         }
         return result;
     }
 
-    private Function<DictItem<K,V>, Boolean> getKeyCompareFunction(K key) {
-        return new Function<DictItem<K,V>, Boolean>(){
-
-			@Override
-			public Boolean apply(DictItem<K, V> dictItem) {
-				return dictItem.hasKey(key);
-			}
-        };
-    }
-
     @Override
     public String toString() {
         List<String> result = new List<>();
-        for (DictItem<K, V> dictItem : this.items) {
+        for (DictItem<K, V> dictItem= this.items.initForLoop(); this.items.hasNext();dictItem=this.items.next()) {
             result.add(String.format("\"%s\": \"%s\"", dictItem.key, dictItem.value));
         }
-        return "{" + String.join(", ", result) + "}";
+        String finalResult = "{";
+        for (String string=result.initForLoop();result.hasNext();string=result.next()) {
+            finalResult += string;
+            if (result.hasNext()) {
+                finalResult += ", ";
+            }
+        }
+        return finalResult + "}";
     }
 }
