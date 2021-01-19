@@ -294,7 +294,11 @@ public class List<T> implements Cloneable {
         }
         this.isInLoop = true;
         this.currentElement = this.firstElement;
-        return this.currentElement.element;
+        try {
+            return this.currentElement.element;
+        } catch (NullPointerException ignore) {
+            return null;
+        }
     }
 
     /**
@@ -316,6 +320,7 @@ public class List<T> implements Cloneable {
             return false;
         }
         if (this.isLastLoopIteration) {
+            this.isLastLoopIteration = false;
             return true;
         }
         if (!hasNext && this.length == 1 && !this.isLastLoopIteration) {
