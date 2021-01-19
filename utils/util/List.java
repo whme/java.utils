@@ -12,14 +12,14 @@ import utils.exceptions.AlreadyInLoopException;
  * (sometimes called the "for-each loop" statement).
  * All other functionalities will still be available.
  */
-import java.util.Iterator;
-import java.util.ListIterator;
+// import java.util.Iterator;
+// import java.util.ListIterator;
 /**
  * INFO: The below import enables the {@code contains}
  * function to accept a compare function as input
  * parameter.
  */
-import java.util.function.Function;
+// import java.util.function.Function;
 
 /**
  * A custom implementation of a linked list.
@@ -36,7 +36,7 @@ import java.util.function.Function;
  * @param <T> the type of elements stored in this list.
  *
  */
-public class List<T> implements Iterable<T>, Cloneable {
+public class List<T> implements Cloneable {
 
     private ListElement<T> firstElement;
     private ListElement<T> lastElement;
@@ -66,7 +66,7 @@ public class List<T> implements Iterable<T>, Cloneable {
 
     public List(List<T> list) {
         this();
-        for (T element: list) {
+        for (T element=this.initForLoop(); this.hasNext(); element=this.next()) {
             this.add(element);
         }
     }
@@ -194,24 +194,6 @@ public class List<T> implements Iterable<T>, Cloneable {
     }
 
     /**
-     * Return the first element of the list for which
-     * the given {@code compareFunction} evaluates to
-     * {@code true}.
-     * @param compareFunction Compare function to be used.
-     * @return The element from the list.
-     */
-    public T get(Function<T, Boolean> compareFunction) {
-        ListElement<T> currentElement = this.firstElement;
-        while(currentElement != null) {
-            if (compareFunction.apply(currentElement.element)) {
-                return currentElement.element;
-            }
-            currentElement = currentElement.nextElement;
-        }
-        return null;
-    }
-
-    /**
      * Insert element at given index.
      * @param element Element to be inserted.
      * @param index Index at which to insert.
@@ -253,23 +235,6 @@ public class List<T> implements Iterable<T>, Cloneable {
         }
     }
 
-    /**
-     * Remove the first element of the list for which
-     * the given {@code compareFunction} evaluates to
-     * {@code true}.
-     * @param compareFunction Compare function to use.
-     */
-    public void remove(Function<T, Boolean> compareFunction) {
-        ListElement<T> currentElement = this.firstElement;
-        while(currentElement != null) {
-            if (compareFunction.apply(currentElement.element)) {
-                this._remove(currentElement);
-                return;
-            }
-            currentElement = currentElement.nextElement;
-        }
-    }
-
     private void _remove(ListElement<T> ListElement) {
         this.length--;
         if (ListElement.equals(this.firstElement)) {
@@ -286,6 +251,10 @@ public class List<T> implements Iterable<T>, Cloneable {
         ListElement.nextElement.previousElement = ListElement.previousElement;
     }
 
+    public boolean isLast(T element) {
+        return this.lastElement.element.equals(element);
+    }
+
     /**
      * Check if an element is contained within the list.
      * @param element The element to look for.
@@ -295,23 +264,6 @@ public class List<T> implements Iterable<T>, Cloneable {
         ListElement<T> currentElement = this.firstElement;
         while(currentElement != null) {
             if (currentElement.element.equals(element)) {
-                return true;
-            }
-            currentElement = currentElement.nextElement;
-        }
-        return false;
-    }
-
-    /**
-     * Check if an element is contained within the list
-     * by specifying the compare function on the element to be used.
-     * @param compareFunction Compare function to be used.
-     * @return Whether the element is present within the list or not.
-     */
-    public boolean contains(Function<T, Boolean> compareFunction) {
-        ListElement<T> currentElement = this.firstElement;
-        while(currentElement != null) {
-            if (compareFunction.apply(currentElement.element)) {
                 return true;
             }
             currentElement = currentElement.nextElement;
@@ -336,6 +288,7 @@ public class List<T> implements Iterable<T>, Cloneable {
      * @return The first element of the list.
      */
     public T initForLoop() {
+        if (this.length == 0) return null;
         if (this.isInLoop) {
             throw new AlreadyInLoopException("Loop has already been initialized.");
         }
@@ -350,6 +303,7 @@ public class List<T> implements Iterable<T>, Cloneable {
      * @return boolean
      */
     public boolean hasNext() {
+        if (this.length == 0) return false;
         if (!this.isInLoop) {
             throw new NotInLoopException("List has not been initialized for loop");
         }
@@ -364,6 +318,10 @@ public class List<T> implements Iterable<T>, Cloneable {
         if (this.isLastLoopIteration) {
             return true;
         }
+        if (!hasNext && this.length == 1 && !this.isLastLoopIteration) {
+            this.isLastLoopIteration = true;
+            return true;
+        }
         return hasNext;
     }
 
@@ -373,6 +331,7 @@ public class List<T> implements Iterable<T>, Cloneable {
      * @return Next element.
      */
     public T next() {
+        if (this.length == 0) return null;
         if (!this.isInLoop) {
             throw new NotInLoopException("List has not been initialized for loop");
         }
@@ -437,69 +396,5 @@ public class List<T> implements Iterable<T>, Cloneable {
             }
             return String.format("%s <-- %s --> %s", previousElement, this.element, nextElement);
         }
-    }
-
-    /**
-     * INFO: If, in order to comply with policies restricting
-     * the use of certain java libraries, such as java.util,
-     * the import statements in thif file have been removed or
-     * commented, this is also to be done for the following code.
-     * As mentioned above, this will only prevent this class
-     * to work with the enhanced {@code for} statement
-     * (sometimes called the "for-each loop" statement).
-     * All other functionalities will still be available.
-     */
-
-    @Override
-    public Iterator<T> iterator() {
-        return new ListIterator<T>(){
-            private int index = 0;
-
-            @Override
-            public boolean hasNext() {
-                return index < getLength();
-            }
-
-            @Override
-            public T next() {
-                return get(index++);
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException("not supported yet");
-            }
-
-            @Override
-            public boolean hasPrevious() {
-                int _index = index < 0 ? -1 * index : index;
-                return _index < getLength();
-            }
-
-            @Override
-            public T previous() {
-                return get(index--);
-            }
-
-            @Override
-            public int nextIndex() {
-                return index+1;
-            }
-
-            @Override
-            public int previousIndex() {
-                return index-1;
-            }
-
-            @Override
-            public void set(T e) {
-                throw new UnsupportedOperationException("not supported yet");
-            }
-
-            @Override
-            public void add(T e) {
-                throw new UnsupportedOperationException("not supported yet");
-            }
-        };
     }
 }
