@@ -89,19 +89,15 @@ public class Graph {
                 }
             }
         }
-        List<Vertex> shortestPath = new ArrayList<>();
-        Vertex vertex = target;
-        while (vertex != null) {
-            shortestPath.add(vertex);
-            vertex = parentNodes.get(vertex);
-        }
 
         List<Edge> result = new ArrayList<>();
-        for (Vertex _vertex : shortestPath) {
-            int index = shortestPath.indexOf(_vertex);
-            if (index != shortestPath.size() -1) {
-                result.add(_vertex.getInversePathTo(shortestPath.get(index+1)));
+        Vertex next_vertex, vertex = target;
+        while (vertex != null) {
+            next_vertex = parentNodes.get(vertex);
+            if (next_vertex != null) {
+                result.add(vertex.getInversePathTo(next_vertex));
             }
+            vertex = next_vertex;
         }
         Collections.reverse(result);
         return result;

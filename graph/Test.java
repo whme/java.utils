@@ -10,7 +10,7 @@ public class Test {
         Vertex d = new Vertex(":d:");
         Vertex e = new Vertex(":e:");
         Vertex f = new Vertex(":f:");
-        Vertex z = new Vertex(":z:");
+        // Vertex z = new Vertex(":z:");
         g.addEdge(a, b, 10);
         g.addEdge(a, c, 10);
         g.addEdge(b, c, 2);
@@ -20,6 +20,6 @@ public class Test {
         g.addEdge(d, f, 9);
         g.addEdge(e, f, 10);
         g.addEdge(e, d, 6);
-        System.out.println(g.shortestPathBFS(a, z));
+        System.out.println(g.shortestPathBFS(a, f));
     }
 }
