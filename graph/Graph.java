@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.NoSuchElementException;
 
 public class Graph {
     private List<Vertex> vertices;
@@ -20,55 +21,6 @@ public class Graph {
     }
 
 
-    public ArrayList<Vertex> doBFSShortestPath(Vertex start, Vertex target) {
-        ArrayList<Vertex> shortestPathList = new ArrayList<>();
-		HashMap<Vertex, Boolean> visited = new HashMap<>();
-
-		Queue<Vertex> queue = new LinkedList<>();
-		Stack<Vertex> pathStack = new Stack<>();
-
-		queue.add(start);
-		pathStack.add(start);
-		visited.put(start, true);
-
-		while(!queue.isEmpty())
-		{
-			Vertex u = queue.poll();
-			List<Edge> adjList = u.getOutgoingEdges();
-
-			for(Edge e : adjList)
-			{
-                Vertex v = e.getSink();
-				if(!visited.containsKey(v))
-				{
-					queue.add(v);
-					visited.put(v, true);
-					pathStack.add(v);
-					if(u.equals(target))
-						break;
-				}
-			}
-		}
-
-
-		//To find the path
-		Vertex node, currentSrc=target;
-		shortestPathList.add(target);
-		while(!pathStack.isEmpty())
-		{
-			node = pathStack.pop();
-            if (currentSrc.getIncomingEdges().contains(new Edge(node, currentSrc)))
-			{
-				shortestPathList.add(node);
-				currentSrc = node;
-				if(node.equals(start))
-					break;
-			}
-		}
-
-		return shortestPathList;
-    }
-
     public List<Edge> shortestPathBFS(Vertex start, Vertex target) {
 
         Queue<Vertex> queue = new LinkedList<>();
@@ -78,7 +30,13 @@ public class Graph {
         queue.add(start);
         visited.add(start);
         while (true) {
-            Vertex currentVertex = queue.remove();
+            Vertex currentVertex = null;
+            try {
+                currentVertex = queue.remove();
+            } catch (NoSuchElementException e) {
+                throw new IllegalArgumentException("Target does not exist");
+            }
+            
             if (currentVertex.equals(target)) break;
             for (Edge edge : currentVertex.getOutgoingEdges()) {
                 Vertex _currentVertex = edge.getSink();
